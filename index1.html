@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EC2 Manager</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      height: 100vh;
+      padding: 20px;
+    }
+    .card {
+      background: #161b22;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.5);
+      width: 400px;
+      margin: 10px;
+    }
+    input, select, button {
+      width: 100%;
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+    }
+    input, select {
+      background: #0d1117;
+      color: #e6edf3;
+      border: 1px solid #30363d;
+    }
+    button {
+      background: #238636;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2ea043;
+    }
+    .result {
+      margin-top: 15px;
+      padding: 10px;
+      background: #21262d;
+      border-radius: 6px;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <!-- 🚀 Launch Instance -->
+  <div class="card">
+    <h2>🚀 Launch EC2 Instance</h2>
+    <form id="launchForm">
+      <label>Region Name:</label>
+      <input type="text" name="region_name" value="ap-south-1" required>
+
+      <label>AMI Image ID:</label>
+      <input type="text" name="image_id" value="ami-0c4a668b99e68bbde" required>
+
+      <label>Instance Type:</label>
+      <select name="instance_type" required>
+        <option value="t2.micro">t2.micro</option>
+        <option value="t3.micro" selected>t3.micro</option>
+        <option value="t3.small">t3.small</option>
+      </select>
+
+      <label>Key Pair Name:</label>
+      <input type="text" name="key_name" value="Adityakey" required>
+
+      <button type="submit">Launch Instance</button>
+    </form>
+    <div class="result" id="launchResult"></div>
+  </div>
+
+  <!-- ⏹ Stop Instance -->
+  <div class="card">
+    <h2>⏹ Stop EC2 Instance</h2>
+    <form id="stopForm">
+      <label>Region Name:</label>
+      <input type="text" name="region_name" value="ap-south-1" required>
+
+      <label>Instance ID:</label>
+      <input type="text" name="instance_id" placeholder="i-0abcdef1234567890" required>
+
+      <button type="submit">Stop Instance</button>
+    </form>
+    <div class="result" id="stopResult"></div>
+  </div>
+
+  <!-- ❌ Terminate Instance -->
+  <div class="card">
+    <h2>❌ Terminate EC2 Instance</h2>
+    <form id="terminateForm">
+      <label>Region Name:</label>
+      <input type="text" name="region_name" value="ap-south-1" required>
+
+      <label>Instance ID:</label>
+      <input type="text" name="instance_id" placeholder="i-0abcdef1234567890" required>
+
+      <button type="submit">Terminate Instance</button>
+    </form>
+    <div class="result" id="terminateResult"></div>
+  </div>
+
+  <script>
+    async function callApi(url, payload, resultId) {
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        document.getElementById(resultId).textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        document.getElementById(resultId).textContent = "❌ Error: " + err.message;
+      }
+    }
+
+    // Launch
+    document.getElementById("launchForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const payload = {
+        region_name: form.region_name.value,
+        image_id: form.image_id.value,
+        instance_type: form.instance_type.value,
+        key_name: form.key_name.value
+      };
+      callApi("http://127.0.0.1:5000/launch-instance", payload, "launchResult");
+    });
+
+    // Stop
+    document.getElementById("stopForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const payload = {
+        region_name: form.region_name.value,
+        instance_id: form.instance_id.value
+      };
+      callApi("http://127.0.0.1:5000/stop-instance", payload, "stopResult");
+    });
+
+    // Terminate
+    document.getElementById("terminateForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const payload = {
+        region_name: form.region_name.value,
+        instance_id: form.instance_id.value
+      };
+      callApi("http://127.0.0.1:5000/terminate-instance", payload, "terminateResult");
+    });
+  </script>
+</body>
+</html>
